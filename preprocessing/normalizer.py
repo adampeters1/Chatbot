@@ -1,78 +1,110 @@
 """
-Text normalization module.
-Cleans and standardizes raw text input before tokenization.
+Text normalization utilities.
+Cleans raw text prior to tokenization through a sequence of
+transformations: lowercasing, accent removal, punctuation stripping,
+number handling, and whitespace normalization.
 """
 
 import re
 import string
 
+# ──────────────────────────────────────────────
+# Accented character → ASCII equivalent mapping
+# Only lowercase forms needed since lowercasing
+# is applied before accent removal in the pipeline.
+# ──────────────────────────────────────────────
+ACCENT_MAP = {
+    "à": "a", "á": "a", "â": "a", "ã": "a", "ä": "a", "å": "a",
+    "è": "e", "é": "e", "ê": "e", "ë": "e",
+    "ì": "i", "í": "i", "î": "i", "ï": "i",
+    "ò": "o", "ó": "o", "ô": "o", "õ": "o", "ö": "o",
+    "ù": "u", "ú": "u", "û": "u", "ü": "u",
+    "ý": "y", "ÿ": "y",
+    "ñ": "n", "ç": "c",
+}
 
-def normalize_text(text):
+# O(1) lookup set for punctuation characters
+PUNCTUATION_SET = set(string.punctuation)
+
+
+def to_lowercase(text):
+    """Convert entire string to lowercase."""
+    return text.lower()
+
+
+def remove_accents(text):
+    """Replace accented characters with their ASCII equivalents.
+    Characters not found in the mapping are left unchanged."""
+    return "".join(ACCENT_MAP.get(char, char) for char in text)
+
+
+def remove_punctuation(text):
+    """Strip all characters present in string.punctuation."""
+    return "".join(char for char in text if char not in PUNCTUATION_SET)
+
+
+def normalize_whitespace(text):
+    """Collapse all whitespace sequences (spaces, tabs, newlines)
+    into single spaces and strip leading/trailing whitespace."""
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def handle_numbers(text, strategy="remove"):
     """
-    Normalize raw text through a series of cleaning operations.
-    
-    Operations applied in order:
-    1. Lowercase conversion
-    2. Unicode/accent handling
-    3. Punctuation removal
-    4. Number handling (replace with token)
-    5. Whitespace normalization
-    
+    Process numeric characters according to the chosen strategy.
+
+    Parameters
+    ----------
+    text : str
+        Input text potentially containing digits.
+    strategy : str
+        'remove'  — delete all digit sequences entirely.
+        'replace' — replace each digit sequence with the token NUM.
+        'keep'    — leave digits unchanged.
+
+    Returns
+    -------
+    str
+        Text with numbers handled according to strategy.
+
+    Rationale for default 'remove': in intent classification the
+    presence of specific numbers rarely affects the intent category.
+    "I have 3 questions" carries the same intent as "I have questions".
+    """
+    if strategy == "remove":
+        return re.sub(r"\d+", "", text)
+    elif strategy == "replace":
+        return re.sub(r"\d+", "NUM", text)
+    elif strategy == "keep":
+        return text
+    else:
+        raise ValueError(f"Unknown number strategy: {strategy}")
+
+
+def normalize(text, number_strategy="remove"):
+    """
+    Full normalization pipeline applied in order:
+        1. Lowercase conversion
+        2. Accent / unicode replacement
+        3. Punctuation removal
+        4. Number handling
+        5. Whitespace normalization
+
     Parameters
     ----------
     text : str
         Raw input text.
-    
+    number_strategy : str
+        Passed to handle_numbers().
+
     Returns
     -------
     str
-        Normalized text.
+        Cleaned, normalized text ready for tokenization.
     """
-    
-    if not isinstance(text, str):
-        text = str(text)
-    
-    # ── Step 1: Lowercase ─────────────────────
-    text = text.lower()
-    
-    # ── Step 2: Unicode/Accent handling ───────
-    # Encode to ASCII, ignoring characters that can't be represented
-    # This strips accents: café → cafe
-    text = text.encode('ascii', 'ignore').decode('ascii')
-    
-    # ── Step 3: Punctuation removal ───────────
-    # Remove all punctuation characters
-    translator = str.maketrans('', '', string.punctuation)
-    text = text.translate(translator)
-    
-    # ── Step 4: Number handling ───────────────
-    # Replace all digit sequences with a <NUM> token
-    # This preserves that a number existed without the specific value
-    # "I have 25 cats" → "I have <NUM> cats"
-    text = re.sub(r'\d+', '<NUM>', text)
-    
-    # ── Step 5: Whitespace normalization ──────
-    # Collapse multiple spaces, tabs, newlines into single space
-    text = re.sub(r'\s+', ' ', text)
-    
-    # Strip leading/trailing whitespace
-    text = text.strip()
-    
+    text = to_lowercase(text)
+    text = remove_accents(text)
+    text = remove_punctuation(text)
+    text = handle_numbers(text, strategy=number_strategy)
+    text = normalize_whitespace(text)
     return text
-
-
-def normalize_batch(texts):
-    """
-    Normalize a batch of texts.
-    
-    Parameters
-    ----------
-    texts : list of str
-        List of raw text strings.
-    
-    Returns
-    -------
-    list of str
-        List of normalized texts.
-    """
-    return [normalize_text(text) for text in texts]
