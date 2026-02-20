@@ -136,6 +136,50 @@ def verify_phase_2(train_data, test_data):
 
     return train_processed, test_processed
 
+def verify_vocabulary_builder(train_processed):
+    """Test the Vocabulary class with the preprocessed training data."""
+    from features import Vocabulary
+
+    print("\n" + "=" * 65)
+    print(" PHASE 3 — Vocabulary Builder")
+    print("=" * 65)
+
+    # ── Test 1: Build with default settings ──────
+    print("\n[TEST 1] Building vocabulary with min_freq=2, no max_size")
+    vocab = Vocabulary(min_freq=2, max_size=None)
+    vocab.build_from_dataset(train_processed)
+    vocab.print_summary()
+    vocab.print_most_common(n=20)
+    vocab.print_least_common(n=10)
+
+    # ── Test 2: Verify token lookup ──────────────
+    print("\n[TEST 2] Token lookup verification")
+    print("-" * 50)
+    test_tokens = ["hello", "thank", "help", "bot", "nonexistenttoken12345"]
+    for token in test_tokens:
+        idx = vocab.get_index(token)
+        if idx is not None:
+            reverse = vocab.get_token(idx)
+            in_vocab = token in vocab
+            print(f"  '{token}' → index {idx} → '{reverse}' | in vocab: {in_vocab}")
+        else:
+            print(f"  '{token}' → OUT OF VOCABULARY")
+
+    # ── Test 3: Build with max_size constraint ───
+    print("\n[TEST 3] Building vocabulary with min_freq=2, max_size=500")
+    vocab_limited = Vocabulary(min_freq=2, max_size=500)
+    vocab_limited.build_from_dataset(train_processed)
+    vocab_limited.print_summary()
+
+    # ── Test 4: Build with higher min_freq ───────
+    print("\n[TEST 4] Building vocabulary with min_freq=5, no max_size")
+    vocab_strict = Vocabulary(min_freq=5, max_size=None)
+    vocab_strict.build_from_dataset(train_processed)
+    vocab_strict.print_summary()
+
+    print("\n" + "=" * 65)
+
+    return vocab
 
 def main():
     # Phase 1
@@ -144,6 +188,10 @@ def main():
     # Phase 2
     train_processed, test_processed = verify_phase_2(train_data, test_data)
 
+    # Phase 3 - Vocabulary
+    vocab = verify_vocabulary_builder(train_processed)
 
+
+    
 if __name__ == "__main__":
     main()
