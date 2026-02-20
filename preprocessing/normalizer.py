@@ -23,6 +23,23 @@ ACCENT_MAP = {
     "ñ": "n", "ç": "c",
 }
 
+# Add this mapping to normalizer.py
+SMART_QUOTE_MAP = {
+    "\u2018": "'",   # '  left single
+    "\u2019": "'",   # '  right single (most common in contractions)
+    "\u201A": "'",   # ‚  single low-9
+    "\u201C": '"',   # "  left double
+    "\u201D": '"',   # "  right double
+    "\u201E": '"',   # „  double low-9
+    "\u2032": "'",   # ′  prime
+    "\u2033": '"',   # ″  double prime
+}
+
+def replace_smart_quotes(text):
+    for smart, ascii_equiv in SMART_QUOTE_MAP.items():
+        text = text.replace(smart, ascii_equiv)
+    return text
+
 # O(1) lookup set for punctuation characters
 PUNCTUATION_SET = set(string.punctuation)
 
@@ -103,6 +120,7 @@ def normalize(text, number_strategy="remove"):
         Cleaned, normalized text ready for tokenization.
     """
     text = to_lowercase(text)
+    text = replace_smart_quotes(text)
     text = remove_accents(text)
     text = remove_punctuation(text)
     text = handle_numbers(text, strategy=number_strategy)

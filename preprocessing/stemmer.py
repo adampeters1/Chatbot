@@ -60,7 +60,11 @@ def _step_a_plurals(word):
         return word[:-3] + "y"
 
     if word.endswith("es") and len(word) > 4:
-        return word[:-2]
+        # Only strip -es where it is a genuine plural suffix
+        # (after s, x, z, sh, ch)
+        stem = word[:-2]
+        if stem.endswith(("s", "x", "z", "sh", "ch")):
+            return stem
 
     if word.endswith("s") and not word.endswith("ss") and len(word) > 3:
         return word[:-1]
@@ -115,10 +119,9 @@ def _step_c_adj_adv_suffixes(word):
     if word.endswith("ment") and len(word) > 6:
         return word[:-4]
 
-    if word.endswith("able") and len(word) > 6:
+    if word.endswith("able") and len(word[:-4]) >= 4:
         return word[:-4]
-
-    if word.endswith("ible") and len(word) > 6:
+    if word.endswith("ible") and len(word[:-4]) >= 4:
         return word[:-4]
 
     if word.endswith("ful") and len(word) > 5:

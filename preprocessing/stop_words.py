@@ -24,7 +24,7 @@ STOP_WORDS = {
     # ── Pronouns ──────────────────────────────
     "i", "me", "my", "myself",
     "we", "our", "ours", "ourselves",
-    "you", "your", "yours", "yourself", "yourselves",
+    "your", "yours", "yourself", "yourselves",
     "he", "him", "his", "himself",
     "she", "her", "hers", "herself",
     "it", "its", "itself",
@@ -33,21 +33,21 @@ STOP_WORDS = {
     # ── Common verbs / auxiliaries ─────────────
     "is", "am", "are", "was", "were", "be", "been", "being",
     "have", "has", "had", "having",
-    "do", "does", "did", "doing",
+    "does", "did", "doing",
     "will", "would", "could", "should",
-    "may", "might", "can", "shall",
+    "may", "might", "shall",
 
     # ── Demonstratives / determiners ──────────
     "this", "that", "these", "those",
 
     # ── Question words ────────────────────────
-    "what", "which", "who", "whom", "where", "when", "how", "why",
+    "which", "whom", "where", "when", "how", "why",
 
     # ── Subordinating conjunctions ────────────
     "if", "then", "than", "as", "while", "because", "although",
 
     # ── Adverbs / quantifiers ─────────────────
-    "not", "no", "just", "only", "very", "too", "also",
+    "just", "only", "very", "too", "also",
     "there", "here",
 
     # ── Indefinite / distributive ─────────────
