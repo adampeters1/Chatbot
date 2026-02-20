@@ -1,8 +1,15 @@
 """
 Feature extraction module.
-Exports the Vocabulary class for import convenience.
+Exports vocabulary, vectorizers, and label encoding utilities.
 """
 
 from features.vocabulary import Vocabulary
+from features.vectorizer import BagOfWordsVectorizer, TfidfVectorizer
+from features.label_encoder import LabelEncoder
 
-__all__ = ["Vocabulary"]
+__all__ = [
+    "Vocabulary",
+    "BagOfWordsVectorizer",
+    "TfidfVectorizer",
+    "LabelEncoder",
+]
