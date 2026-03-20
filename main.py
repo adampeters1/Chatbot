@@ -1,5 +1,5 @@
 """
-main.py — Full Phase 1–6 verification + CLI chatbot entry point.
+main.py — Full Phase 1-6 verification + CLI chatbot entry point.
 """
 
 from config import (
