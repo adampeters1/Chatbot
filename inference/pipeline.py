@@ -67,7 +67,7 @@ except ImportError:
 try:
     from config import EPOCHS as _DEFAULT_EPOCHS
 except ImportError:
-    _DEFAULT_EPOCHS = 50
+    _DEFAULT_EPOCHS = 1
 
 
 # ─────────────────────────────────────────────
