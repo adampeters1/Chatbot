@@ -62,3 +62,10 @@ PREPROCESSING = {
     "number_strategy": "remove",
     "tokenize_method": "regex",
 }
+
+# ──────────────────────────────────────────────
+# Training Hyper-parameters
+# ──────────────────────────────────────────────
+HIDDEN_SIZES  = [64]       # e.g. [64] → [vocab, 64, NUM_CLASSES]
+LEARNING_RATE = 0.1
+EPOCHS        = 50
