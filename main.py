@@ -1,5 +1,5 @@
 """
-main.py — Full Phase 3 verification
+main.py — Full Phase 1–4 verification
 """
 
 from config import (
@@ -83,10 +83,10 @@ def verify_phase_3(train_processed, test_processed):
     # ── Step 2: Bag-of-Words Vectorization ────────
     print("\n[STEP 2] Bag-of-Words vectorization...")
     bow_vectorizer = BagOfWordsVectorizer(vocab)
-    
+
     X_train_bow = bow_vectorizer.transform_dataset(train_processed)
     X_test_bow = bow_vectorizer.transform_dataset(test_processed)
-    
+
     print(f"  Training BoW matrix shape   : {X_train_bow.shape}")
     print(f"  Testing BoW matrix shape    : {X_test_bow.shape}")
     print(f"  BoW matrix dtype            : {X_train_bow.dtype}")
@@ -97,16 +97,16 @@ def verify_phase_3(train_processed, test_processed):
     print("\n[STEP 3] TF-IDF vectorization...")
     tfidf_vectorizer = TfidfVectorizer(vocab)
     tfidf_vectorizer.fit_dataset(train_processed)
-    
+
     X_train_tfidf = tfidf_vectorizer.transform_dataset(train_processed)
     X_test_tfidf = tfidf_vectorizer.transform_dataset(test_processed)
-    
+
     print(f"  Training TF-IDF matrix shape   : {X_train_tfidf.shape}")
     print(f"  Testing TF-IDF matrix shape    : {X_test_tfidf.shape}")
     print(f"  TF-IDF matrix dtype            : {X_train_tfidf.dtype}")
     print(f"  Sample TF-IDF vector (first 5) : {X_train_tfidf[0][:5]}")
     print(f"  TF-IDF sparsity (% zeros)      : {(X_train_tfidf == 0).sum() / X_train_tfidf.size * 100:.1f}%")
-    
+
     # Compare BoW vs TF-IDF for same sample
     print(f"\n  Comparison for sample 0:")
     print(f"    BoW vector norm    : {np.linalg.norm(X_train_bow[0]):.2f}")
@@ -115,15 +115,15 @@ def verify_phase_3(train_processed, test_processed):
     # ── Step 4: Label Encoding ────────────────────
     print("\n[STEP 4] Label encoding...")
     label_encoder = LabelEncoder(num_classes=NUM_CLASSES)
-    
+
     y_train = label_encoder.encode_dataset(train_processed)
     y_test = label_encoder.encode_dataset(test_processed)
-    
+
     print(f"  Training labels shape    : {y_train.shape}")
     print(f"  Testing labels shape     : {y_test.shape}")
     print(f"  Labels dtype             : {y_train.dtype}")
     print(f"  Sample one-hot (label 0) : {y_train[0]}")
-    
+
     # Test encoding/decoding round-trip
     original_label = train_processed[0]["label"]
     encoded = label_encoder.encode_single(original_label)
@@ -149,6 +149,80 @@ def verify_phase_3(train_processed, test_processed):
     return vocab, X_train_tfidf, X_test_tfidf, y_train, y_test
 
 
+# ────────────────────────────────────────────────────────────────────
+# Phase 4 — Math utilities & neural-network components
+# ────────────────────────────────────────────────────────────────────
+
+def _run_component_suite(label: str, module_path: str):
+    """
+    Import a test module, run its `run_all_tests()` with stdout
+    suppressed, and return (label, passed_bool, fail_count).
+    """
+    import importlib
+    import io
+    import contextlib
+
+    try:
+        mod = importlib.import_module(module_path)
+    except Exception as exc:
+        return label, False, f"import error: {exc}"
+
+    # Reset the module's private failure list so repeated runs are clean.
+    if hasattr(mod, "_failures"):
+        mod._failures.clear()
+
+    # Silence the per-test PASS/FAIL spam.
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf):
+            mod.run_all_tests()
+    except Exception as exc:
+        return label, False, f"runtime error: {exc}"
+
+    fail_count = len(getattr(mod, "_failures", [None]))  # fallback → 1
+    return label, fail_count == 0, fail_count
+
+
+def verify_phase_4():
+    """
+    Run the Phase-4 test modules (matrix_ops, activations, losses,
+    layers, network) and print a single pass/fail line per component.
+    """
+    print("\n" + "=" * 65)
+    print(" PHASE 4 — Math Utilities & Neural-Network Components")
+    print("=" * 65)
+
+    components = [
+        ("matrix_ops   (utils/matrix_ops)",       "utils.matrix_ops_test"),
+        ("activations  (model/activations)",      "model.activations_test"),
+        ("losses       (model/losses)",           "model.losses_test"),
+        ("DenseLayer   (model/layers)",           "model.layers_test"),
+        ("Network      (model/network)",          "model.network_test"),
+    ]
+
+    results = [_run_component_suite(lbl, mod) for lbl, mod in components]
+
+    print()
+    for label, passed, detail in results:
+        mark = "✓" if passed else "✗"
+        status = "PASS" if passed else f"FAIL ({detail} failed)"
+        print(f"  {mark} {label:<42} {status}")
+
+    n_pass = sum(1 for _, p, _ in results if p)
+    n_total = len(results)
+
+    print("\n" + "=" * 65)
+    print("PHASE 4 VERIFICATION SUMMARY")
+    print("=" * 65)
+    if n_pass == n_total:
+        print(f"  ✓ All {n_total} component suites passed.")
+    else:
+        print(f"  ✗ {n_total - n_pass} of {n_total} component suites FAILED.")
+    print("=" * 65)
+
+    return n_pass == n_total
+
+
 def main():
     # Phase 1: Data loading
     data, train_data, test_data = verify_phase_1()
@@ -160,6 +234,9 @@ def main():
     vocab, X_train, X_test, y_train, y_test = verify_phase_3(
         train_processed, test_processed
     )
+
+    # Phase 4: Math utilities + NN components
+    verify_phase_4()
 
 
 if __name__ == "__main__":
